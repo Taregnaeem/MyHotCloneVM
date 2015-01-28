@@ -1,0 +1,33 @@
+#!/usr/bin/expect
+
+# Rel. 0.4 - ListVmDiskMaps.cli
+# S. Coter - simon.coter@oracle.com
+# https://blogs.oracle.com/scoter
+
+## Access CLI
+set loginUser "oracle"
+set loginMgrUser "admin"
+set loginPassword  [lindex $argv 0]
+set mgmtServerAddress  [lindex $argv 1]
+set sshkey  [lrange $argv 2 4]
+
+## Expect Parameters
+set timeout 20
+set successMsg "Status: Success"
+set failureMsg "Status: Failure"
+set multiPrompt {[#>$] }
+
+spawn ssh $loginUser@$mgmtServerAddress
+expect_after eof {exit 0}
+
+set timeout 10
+
+##interact with SSH
+expect "yes/no" {send "yes\r"}
+expect "password:" {send "$loginPassword\r"}
+
+expect -re "$multiPrompt" {send "umask 077\r"}
+expect -re "$multiPrompt" {send "mkdir -p .ssh\r"}
+expect -re "$multiPrompt" {send "echo $sshkey >> /home/oracle/.ssh/ovmcli_authorized_keys\r"}
+spawn sleep 5
+expect -re "$multiPrompt" {send "exit 0"}
